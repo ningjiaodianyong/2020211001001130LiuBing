@@ -1,15 +1,17 @@
 package com.example.liubing2020211001001130.week5.homework;
 
+import com.example.liubing2020211001001130.dao.UserDao;
+import com.example.liubing2020211001001130.model.User;
+
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.PrintWriter;
+import java.sql.*;
 
 @WebServlet(name = "LoginServlet", value = "/login")
 public class LoginServlet extends HttpServlet {
@@ -38,7 +40,8 @@ public class LoginServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("login serlvet doGet");
+        //System.out.println("login serlvet doGet");
+        request.getRequestDispatcher("WEB-INF/views/login.jsp").forward(request,response);
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -51,14 +54,29 @@ public class LoginServlet extends HttpServlet {
         System.out.println(username);
         System.out.println(password);
 
-        // TODO 4:VALIDATE USER - SELECT * FROM USERTABLE WHERE USERNAME='XXX' AND PASSWORD='YYY'
+
+        UserDao userDao=new UserDao();
         try {
-            String sql = "Select * from usertable where username=? and password=? ";
+            User user= userDao.findByUsernamePassword(con,username,password);
+            if(user!=null){
+                request.setAttribute("user",user);
+                request.getRequestDispatcher("WEB-INF/views/userList.jsp").forward(request,response);
+            }else {
+                request.setAttribute("message","Username or Password Eorror!!!");
+                request.getRequestDispatcher("WEB-INF/views/login.jsp").forward(request,response);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        // TODO 4:VALIDATE USER - SELECT * FROM USERTABLE WHERE USERNAME='XXX' AND PASSWORD='YYY'
+       /* try {
+           // String sql = "Select * from usertable where username=? and password=? ";
             PreparedStatement preparedStatement = con.prepareStatement(sql);
             preparedStatement.setString(1,username);
             preparedStatement.setString(2,password);
             ResultSet resultSet = preparedStatement.executeQuery();
-
             //5
             if(resultSet.next()){
                 //writer.println("<br/> <h1>Login Success!!!</h1><br/>");
@@ -72,13 +90,13 @@ public class LoginServlet extends HttpServlet {
                 request.getRequestDispatcher("userList.jsp").forward(request,response);
             }else {
                 //writer.println("<h1>Username or Password Error!!!</h1>");
-                //writer.close();
+            //writer.close();
                 request.setAttribute("message","Username or Password Eorror!!!");
                 request.getRequestDispatcher("login.jsp").forward(request,response);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+    } catch (SQLException e) {
+            e.printStackTrace();
+        }*/
     } public void destroy(){
         super.destroy();
         //close connection here - when stop tomcat
